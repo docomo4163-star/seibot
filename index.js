@@ -1,7 +1,6 @@
 // index.js
 const { Client, GatewayIntentBits, Events } = require('discord.js');
 
-const app = express();
 const PORT = process.env.PORT || 4000;
 const TOKEN = (process.env.DISCORD_BOT_TOKEN || '').trim();
 
@@ -9,7 +8,7 @@ const TOKEN = (process.env.DISCORD_BOT_TOKEN || '').trim();
 // Renderはこれを検知して「デプロイ成功」と判断します
 
 // Health Check用 (Renderの設定が /health のままであればこれでOK)
-app.get('/health', (req, res) => {
+app.get('/healthz', (req, res) => {
   res.status(200).send('OK');
 });
 
