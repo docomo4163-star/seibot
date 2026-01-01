@@ -63,7 +63,6 @@ if (oldState.channel &&
 }
 });
 
-client.login(TOKEN);
 const server = http.createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/plain' });
   res.end('Bot is running');
@@ -72,3 +71,13 @@ const server = http.createServer((req, res) => {
 server.listen(port, '0.0.0.0', () => {
   console.log(`Server is listening on port ${port}`);
 });
+
+// そのあと Discord にログイン
+if (!TOKEN) {
+  console.error('DISCORD_BOT_TOKEN が設定されていません');
+} else {
+  client.login(TOKEN).catch(err => {
+    console.error('Discord ログインに失敗しました', err);
+  });
+}
+
