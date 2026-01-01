@@ -1,6 +1,6 @@
 const { Client, GatewayIntentBits } = require('discord.js');
-const TOKEN = (process.env.DISCORD_BOT_TOKEN || '').trim();
 const http = require('http');
+const TOKEN = (process.env.DISCORD_BOT_TOKEN || '').trim();
 const port = process.env.PORT || 4000 
 
 const client = new Client({
@@ -63,6 +63,7 @@ if (oldState.channel &&
 }
 });
 
+// ==== Render 用 HTTP サーバ ====
 const server = http.createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/plain' });
   res.end('Bot is running');
@@ -72,15 +73,23 @@ server.listen(port, '0.0.0.0', () => {
   console.log(`Server is listening on port ${port}`);
 });
 
-// そのあと Discord にログイン
+// 予期しないPromiseエラーもログに出す
+process.on('unhandledRejection', (err) => {
+  console.error('Unhandled promise rejection:', err);
+});
+
+// ==== Discord にログイン ====
+console.log('DISCORD_BOT_TOKEN が設定されているか:', TOKEN.length > 0);
+
 if (!TOKEN) {
   console.error('DISCORD_BOT_TOKEN が設定されていません');
 } else {
-  client.login(TOKEN).catch(err => {
-    console.error('Discord ログインに失敗しました', err);
-  });
+  console.log('Discord ログインを試みます…');
+  client.login(TOKEN)
+    .then(() => {
+      console.log('Discord ログイン成功');
+    })
+    .catch(err => {
+      console.error('Discord ログインに失敗しました:', err);
+    });
 }
-
-client.once('ready', () => {
-  console.log(`ボットがオンラインです！ ログイン中ユーザー: ${client.user.tag}`);
-});
