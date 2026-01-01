@@ -68,6 +68,12 @@ client.on('messageCreate', (message) => {
 // ==== Render 用 HTTP サーバ ====
 const server = http.createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
+
+  // RenderのHealth Check用
+  if (req.url === '/health') {
+    return res.end('OK');
+  }
+
   if (isReady) {
     res.end('Bot is running & logged in ✅');
   } else {
