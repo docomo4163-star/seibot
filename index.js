@@ -6,7 +6,7 @@ const http = require('http');
 
 // ここに「そのまま」のボットトークン文字列をコピペ
 // 例: const TOKEN = 'ABCD.....XYZ';
-const TOKEN = 'ここにDiscordボットトークンを貼る';
+const TOKEN = 'MTQ1NjI4MDMwMTc4NDQwNDEwNw.G8VTWR.HQa5ExSG2rJdjtIxrOYYjxgufUXZE0yRcv8FoA';
 
 // Render の PORT（ローカルならデフォルト4000でもOK）
 const PORT = process.env.PORT || 4000;
