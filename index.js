@@ -1,5 +1,5 @@
 const { Client, GatewayIntentBits } = require('discord.js');
-const TOKEN = process.env.DISCORD_BOT_TOKEN;
+const TOKEN = (process.env.DISCORD_BOT_TOKEN || '').trim();
 const http = require('http');
 const port = process.env.PORT || 4000 
 
