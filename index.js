@@ -89,12 +89,7 @@ process.on('SIGINT', gracefulShutdown);
 // ==== Discord にログイン ====
 console.log('Discord ログインを試みます…');
 
-const loginTimeout = setTimeout(() => {
-  if (!isReady) {
-    console.error(`⚠️ ${LOGIN_TIMEOUT_MS}ms 経っても ready にならないため終了します`);
-    process.exit(1);
-  }
-}, LOGIN_TIMEOUT_MS);
+
 
 client
   .login(TOKEN)
