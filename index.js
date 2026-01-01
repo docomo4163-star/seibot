@@ -6,7 +6,6 @@ const TOKEN = (process.env.DISCORD_BOT_TOKEN || '').trim();
 const PORT = process.env.PORT || 4000;
 
 console.log('=== Bot 起動 ===');
-console.log('DISCORD_BOT_TOKEN が設定されているか:', TOKEN.length > 0);
 if (!TOKEN) {
   console.error('❌ DISCORD_BOT_TOKEN が設定されていません');
   process.exit(1);
@@ -26,31 +25,14 @@ const client = new Client({
 });
 
 // ---- デバッグログ ----
-client.on('debug', (m) => console.log('[DEBUG]', m));
-client.on('warn', (m) => console.warn('[WARN]', m));
-client.on('error', (err) => {
-  console.error('=== CLIENT ERROR ===');
-  console.error(err);
-});
-client.on('shardError', (err) => {
-  console.error('=== SHARD ERROR ===');
-  console.error(err);
-});
-
-process.on('unhandledRejection', (reason) => {
-  console.error('=== UNHANDLED REJECTION ===');
-  console.error(reason);
-});
-process.on('uncaughtException', (err) => {
-  console.error('=== UNCAUGHT EXCEPTION ===');
-  console.error(err);
-});
+client.on('error', (err) => console.error('=== CLIENT ERROR ===', err));
+client.on('shardError', (err) => console.error('=== SHARD ERROR ===', err));
 
 // ---- ready ----
 client.once('ready', (c) => {
   isReady = true;
-  console.log(`✅ ${c.user.tag} でログイン中`);
-  c.user.setActivity('性的な人生0.4', { type: 0 });
+  console.log(`✅ ${c.user.tag} でログイン完了`);
+  c.user.setActivity('性的な人生0.5', { type: 0 });
 });
 
 // ---- メッセージ ----
@@ -67,17 +49,20 @@ client.on('messageCreate', (message) => {
 
 // ==== Render 用 HTTP サーバ ====
 const server = http.createServer((req, res) => {
-  res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
-
-  // RenderのHealth Check用
+  // RenderのHealth Check用パス
   if (req.url === '/health') {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
     return res.end('OK');
   }
 
+  // メインルートへのアクセス
   if (isReady) {
+    res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
     res.end('Bot is running & logged in ✅');
   } else {
-    res.end('Bot process is running, but NOT logged in yet ❌');
+    // 準備中の場合は 503 を返すのがWeb標準として適切です
+    res.writeHead(503, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end('Bot is initializing... ⏳');
   }
 });
 
@@ -85,13 +70,27 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`HTTP server listening on port ${PORT}`);
 });
 
+// ==== シャットダウン処理 (重要) ====
+// Renderなどのクラウド環境では、再デプロイ時に SIGTERM シグナルが送られます。
+// ここで明示的に切断しないと、古い接続が残り続け、新しい接続が拒否されます。
+const gracefulShutdown = () => {
+  console.log('⚠️ SIGTERM を受信しました。シャットダウン処理を開始します...');
+  client.destroy(); // Discordからログアウト
+  server.close(() => { // HTTPサーバを停止
+    console.log('HTTP server closed.');
+    process.exit(0);
+  });
+};
+
+process.on('SIGTERM', gracefulShutdown);
+process.on('SIGINT', gracefulShutdown);
+
 // ==== Discord にログイン ====
 console.log('Discord ログインを試みます…');
 
-// 一定時間 ready にならなかったら強制終了 → Render が再起動してくれる想定
 const loginTimeout = setTimeout(() => {
   if (!isReady) {
-    console.error(`⚠️ ${LOGIN_TIMEOUT_MS}ms 経っても ready にならないのでプロセスを終了します`);
+    console.error(`⚠️ ${LOGIN_TIMEOUT_MS}ms 経っても ready にならないため終了します`);
     process.exit(1);
   }
 }, LOGIN_TIMEOUT_MS);
@@ -99,10 +98,10 @@ const loginTimeout = setTimeout(() => {
 client
   .login(TOKEN)
   .then(() => {
-    console.log('✅ Discord ログイン成功 (login promise resolved)');
+    console.log('Discord APIへの接続リクエスト成功');
   })
   .catch((err) => {
     clearTimeout(loginTimeout);
-    console.error('❌ Discord ログインに失敗しました:', err);
+    console.error('❌ Discord ログイン失敗:', err);
     process.exit(1);
   });
