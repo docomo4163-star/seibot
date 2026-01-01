@@ -1,6 +1,5 @@
 // index.js
 const { Client, GatewayIntentBits, Events } = require('discord.js');
-const express = require('express'); // Expressを使う構成に変更
 
 const app = express();
 const PORT = process.env.PORT || 4000;
