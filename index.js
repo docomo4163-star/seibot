@@ -1,30 +1,32 @@
 // index.js
-// 🔥 テスト用にトークン直書きバージョン（公開厳禁・あとで必ず消す）
+// Render の Web Service 用 & env から TOKEN を読む最小構成
 
 const { Client, GatewayIntentBits } = require('discord.js');
 const http = require('http');
 
-// ここに「そのまま」のボットトークン文字列をコピペ
-// 例: const TOKEN = 'ABCD.....XYZ';
-const TOKEN = 'MTQ1NjI4MDMwMTc4NDQwNDEwNw.G8VTWR.HQa5ExSG2rJdjtIxrOYYjxgufUXZE0yRcv8FoA';
-
-// Render の PORT（ローカルならデフォルト4000でもOK）
+// ==== 環境変数 ====
+const TOKEN = (process.env.DISCORD_BOT_TOKEN || '').trim();
 const PORT = process.env.PORT || 4000;
 
 console.log('=== Bot 起動 ===');
-console.log('ハードコードTOKENの長さ:', TOKEN.length);
+console.log('DISCORD_BOT_TOKEN が設定されているか:', TOKEN.length > 0);
 
-// ---- Render用 HTTPサーバ（Web Service のため）----
+if (!TOKEN) {
+  console.error('❌ DISCORD_BOT_TOKEN が設定されていません');
+  process.exit(1);
+}
+
+// ==== Render 用 HTTP サーバ（Web Service 必須）====
 const server = http.createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
-  res.end('Bot is running (hard-coded token test)');
+  res.end('Bot is running');
 });
 
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`HTTP server listening on port ${PORT}`);
 });
 
-// ---- Discordクライアント作成 ----
+// ==== Discord クライアント ====
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -33,32 +35,39 @@ const client = new Client({
   ],
 });
 
-// ready
+// ==== ログ・エラーハンドラ（デバッグ用）====
 client.once('ready', () => {
   console.log(`✅ ready 発火: ${client.user.tag} としてログイン中`);
 });
 
-// メッセージ (ping → pong)
-client.on('messageCreate', (message) => {
-  console.log('📩 messageCreate:', {
-    author: `${message.author.tag}`,
-    content: message.content,
-  });
+process.on('unhandledRejection', (reason) => {
+  console.error('=== UNHANDLED REJECTION ===');
+  console.error(reason);
+});
 
+process.on('uncaughtException', (err) => {
+  console.error('=== UNCAUGHT EXCEPTION ===');
+  console.error(err);
+});
+
+// ==== メッセージ応答 ====
+// ・ping → pong
+// ・せいは → ちんぱん（元コードの動作も一応入れておく）
+client.on('messageCreate', (message) => {
   if (message.author.bot) return;
 
-  if (message.content === 'ping') {
-    message.reply('pong (from Render, hard-coded token)');
+  const content = message.content;
+
+  if (content === 'ping') {
+    return message.reply('pong');
+  }
+
+  if (content === 'せいは') {
+    return message.reply('ちんぱん');
   }
 });
 
-// エラーハンドラ（念のため）
-client.on('error', (err) => console.error('[CLIENT ERROR]', err));
-process.on('unhandledRejection', (reason) => {
-  console.error('[UNHANDLED REJECTION]', reason);
-});
-
-// ---- ログイン ----
+// ==== Discord にログイン ====
 console.log('Discord ログインを試みます…');
 
 client
