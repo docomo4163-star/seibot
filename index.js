@@ -73,18 +73,28 @@ server.listen(port, '0.0.0.0', () => {
   console.log(`Server is listening on port ${port}`);
 });
 
-// ==== Discord にログイン ====
 console.log('DISCORD_BOT_TOKEN が設定されているか:', TOKEN.length > 0);
 
 if (!TOKEN) {
   console.error('DISCORD_BOT_TOKEN が設定されていません');
 } else {
   console.log('Discord ログインを試みます…');
-  client.login(TOKEN)
-    .then(() => {
-      console.log('Discord ログイン成功');
-    })
-    .catch(err => {
-      console.error('Discord ログインに失敗しました:', err);
-    });
+
+  (async () => {
+    try {
+      const loginResult = await client.login(TOKEN);
+      console.log('✅ Discord ログイン成功', loginResult);
+    } catch (err) {
+      console.error('❌ Discord ログインに失敗しました:', err);
+    }
+  })();
 }
+
+// 念のため：グローバルなエラーハンドラ
+process.on('unhandledRejection', (reason, p) => {
+  console.error('🔥 Unhandled Rejection:', reason);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('🔥 Uncaught Exception:', err);
+});
