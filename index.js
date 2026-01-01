@@ -64,3 +64,11 @@ if (oldState.channel &&
 });
 
 client.login(TOKEN);
+const server = http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  res.end('Bot is running');
+});
+
+server.listen(port, '0.0.0.0', () => {
+  console.log(`Server is listening on port ${port}`);
+});
