@@ -81,3 +81,6 @@ if (!TOKEN) {
   });
 }
 
+client.once('ready', () => {
+  console.log(`ボットがオンラインです！ ログイン中ユーザー: ${client.user.tag}`);
+});
