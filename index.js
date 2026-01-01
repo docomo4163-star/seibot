@@ -50,7 +50,7 @@ process.on('uncaughtException', (err) => {
 client.once('ready', (c) => {
   isReady = true;
   console.log(`✅ ${c.user.tag} でログイン中`);
-  c.user.setActivity('性的な人生3', { type: 0 });
+  c.user.setActivity('性的な人生0.4', { type: 0 });
 });
 
 // ---- メッセージ ----
