@@ -36,8 +36,9 @@ const client = new Client({
 });
 
 // ==== ログ・エラーハンドラ（デバッグ用）====
-client.once('ready', () => {
-  console.log(`✅ ready 発火: ${client.user.tag} としてログイン中`);
+client.once('ready', (c) => {
+  console.log(`✅ ${c.user.tag} でログイン中`);
+  c.user.setActivity("性的な人生", { type: 0 }); // プレイ中: 性的な人生
 });
 
 process.on('unhandledRejection', (reason) => {
