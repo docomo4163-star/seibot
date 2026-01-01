@@ -32,11 +32,12 @@ client.on('shardError', (err) => console.error('=== SHARD ERROR ===', err));
 client.once('ready', (c) => {
   isReady = true;
   console.log(`✅ ${c.user.tag} でログイン完了`);
-  c.user.setActivity('性的な人生0.5', { type: 0 });
+  c.user.setActivity('性的な人生0.6', { type: 0 });
 });
 
 // ---- メッセージ ----
 client.on('messageCreate', (message) => {
+  console.log('aaa')
   if (message.author.bot) return;
 
   if (message.content === 'ping') {
