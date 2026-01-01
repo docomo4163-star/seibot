@@ -16,24 +16,6 @@ client.once('ready', () => {
     console.log('ボットがオンラインです！');
 });
 
-// ==== エラー・警告のログ ====
-client.on('error', (err) => {
-  console.error('client error:', err);
-});
-client.on('shardError', (err) => {
-  console.error('shard error:', err);
-});
-client.on('warn', (info) => {
-  console.warn('client warn:', info);
-});
-
-process.on('unhandledRejection', (err) => {
-  console.error('Unhandled promise rejection:', err);
-});
-process.on('uncaughtException', (err) => {
-  console.error('Uncaught exception:', err);
-});
-
 client.on('messageCreate', message => {
     if (message.content === 'せいは') {
         message.channel.send('ちんぱん');
@@ -89,11 +71,6 @@ const server = http.createServer((req, res) => {
 
 server.listen(port, '0.0.0.0', () => {
   console.log(`Server is listening on port ${port}`);
-});
-
-// 予期しないPromiseエラーもログに出す
-process.on('unhandledRejection', (err) => {
-  console.error('Unhandled promise rejection:', err);
 });
 
 // ==== Discord にログイン ====
