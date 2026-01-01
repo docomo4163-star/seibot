@@ -1,21 +1,34 @@
 // index.js
-const { Client, GatewayIntentBits } = require('discord.js');
-const http = require('http');
+const { Client, GatewayIntentBits, Events } = require('discord.js');
+const express = require('express'); // Expressを使う構成に変更
 
-const TOKEN = (process.env.DISCORD_BOT_TOKEN || '').trim();
+const app = express();
 const PORT = process.env.PORT || 4000;
+const TOKEN = (process.env.DISCORD_BOT_TOKEN || '').trim();
 
-console.log('=== Bot 起動 ===');
+// ==== 1. Webサーバーを最優先で起動 ====
+// Renderはこれを検知して「デプロイ成功」と判断します
+
+// Health Check用 (Renderの設定が /health のままであればこれでOK)
+app.get('/health', (req, res) => {
+  res.status(200).send('OK');
+});
+
+// メインアクセス用
+app.get('/', (req, res) => {
+  res.status(200).send('Bot is running!');
+});
+
+app.listen(PORT, () => {
+  console.log(`✅ Web Server running on port ${PORT}`);
+});
+
+// ==== 2. Botの準備 (サーバー起動後に裏で実行) ====
 if (!TOKEN) {
-  console.error('❌ DISCORD_BOT_TOKEN が設定されていません');
+  console.error('❌ DISCORD_BOT_TOKEN がありません');
   process.exit(1);
 }
 
-// ログイン監視用フラグ & タイマー
-let isReady = false;
-const LOGIN_TIMEOUT_MS = 60000; // 60秒たってもreadyしなかったら落とす
-
-// ==== Discord クライアント ====
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -24,80 +37,33 @@ const client = new Client({
   ],
 });
 
-// ---- デバッグログ ----
-client.on('error', (err) => console.error('=== CLIENT ERROR ===', err));
-client.on('shardError', (err) => console.error('=== SHARD ERROR ===', err));
-
-// ---- ready ----
-client.once('ready', (c) => {
-  isReady = true;
-  console.log(`✅ ${c.user.tag} でログイン完了`);
-  c.user.setActivity('性的な人生0.6', { type: 0 });
+// ログイン完了時の処理
+client.once(Events.ClientReady, (c) => {
+  console.log(`✅ Discordログイン完了: ${c.user.tag}`);
+  c.user.setActivity('性的な人生0.4', { type: 0 });
 });
 
-// ---- メッセージ ----
-client.on('messageCreate', (message) => {
-  console.log('aaa')
+// メッセージ受信時の処理
+client.on(Events.MessageCreate, (message) => {
   if (message.author.bot) return;
 
+  // デバッグログ（必要に応じて）
+  // console.log(`📩 受信: ${message.content}`);
+
   if (message.content === 'ping') {
-    return message.reply('pong');
+    message.reply('pong').catch(console.error);
   }
   if (message.content === 'せいは') {
-    return message.reply('ちんぱん');
+    message.reply('ちんぱん').catch(console.error);
   }
 });
 
-// ==== Render 用 HTTP サーバ ====
-const server = http.createServer((req, res) => {
-  // RenderのHealth Check用パス
-  if (req.url === '/health') {
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    return res.end('OK');
-  }
+// エラーハンドリング
+client.on('error', (err) => console.error('[CLIENT ERROR]', err));
 
-  // メインルートへのアクセス
-  if (isReady) {
-    res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
-    res.end('Bot is running & logged in ✅');
-  } else {
-    // 準備中の場合は 503 を返すのがWeb標準として適切です
-    res.writeHead(503, { 'Content-Type': 'text/plain; charset=utf-8' });
-    res.end('Bot is initializing... ⏳');
-  }
+// ==== 3. ログイン実行 ====
+client.login(TOKEN).catch((err) => {
+  console.error('❌ Discordログイン失敗:', err);
+  // Render上ではプロセスを終了させて再起動を促すのが一般的
+  process.exit(1);
 });
-
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`HTTP server listening on port ${PORT}`);
-});
-
-// ==== シャットダウン処理 (重要) ====
-// Renderなどのクラウド環境では、再デプロイ時に SIGTERM シグナルが送られます。
-// ここで明示的に切断しないと、古い接続が残り続け、新しい接続が拒否されます。
-const gracefulShutdown = () => {
-  console.log('⚠️ SIGTERM を受信しました。シャットダウン処理を開始します...');
-  client.destroy(); // Discordからログアウト
-  server.close(() => { // HTTPサーバを停止
-    console.log('HTTP server closed.');
-    process.exit(0);
-  });
-};
-
-process.on('SIGTERM', gracefulShutdown);
-process.on('SIGINT', gracefulShutdown);
-
-// ==== Discord にログイン ====
-console.log('Discord ログインを試みます…');
-
-
-
-client
-  .login(TOKEN)
-  .then(() => {
-    console.log('Discord APIへの接続リクエスト成功');
-  })
-  .catch((err) => {
-    clearTimeout(loginTimeout);
-    console.error('❌ Discord ログイン失敗:', err);
-    process.exit(1);
-  });
