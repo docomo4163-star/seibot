@@ -57,7 +57,7 @@ const client = new Client({
 
 client.once(Events.ClientReady, (c) => {
   console.log(`✅ Discordログイン完了: ${c.user.tag}`);
-  c.user.setActivity('性的な人生0.8', { type: 0 });
+  c.user.setActivity('性的な人生0.9', { type: 0 });
 
   // ★ ここを追加
   startCleanupJob();
@@ -74,8 +74,8 @@ client.on(Events.MessageCreate, (message) => {
   if (message.content === 'せいは') {
     message.reply('ちんぱん').catch(console.error);
   }
-  if (message.content === 'テスト1') {
-    message.reply('https://cdn.discordapp.com/attachments/951896358590251028/1458264783919775774/Gemini_Generated_Image_help4ahelp4ahelp.png?ex=695f0269&is=695db0e9&hm=4dc67c480c7f03da89eb5ce663339b09ca5e2723dc2721ca8dff553cecb1af3e&').catch(console.error);
+  if (message.content === 'せいは') {
+  message.channel.send('ちんぱん').catch(console.error);
   }
   
 });
