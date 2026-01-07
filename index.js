@@ -57,8 +57,12 @@ const client = new Client({
 
 client.once(Events.ClientReady, (c) => {
   console.log(`✅ Discordログイン完了: ${c.user.tag}`);
-  c.user.setActivity('性的な人生0.7', { type: 0 });
+  c.user.setActivity('性的な人生0.8', { type: 0 });
+
+  // ★ ここを追加
+  startCleanupJob();
 });
+
 
 // テキスト反応
 client.on(Events.MessageCreate, (message) => {
@@ -137,6 +141,45 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
   }
 });
 
+// ==== 定期クリーンアップ（1分ごと） ====
+// Map管理が壊れた／再起動した場合の保険
+function startCleanupJob() {
+  setInterval(async () => {
+    try {
+      if (!client.isReady()) return;
+
+      for (const [, guild] of client.guilds.cache) {
+        const notifyChannel = guild.channels.cache.get(VC_NOTIFY_CHANNEL_ID);
+        if (!notifyChannel) continue;
+        if (!notifyChannel.isTextBased()) continue;
+
+        // 直近メッセージを取得
+        const messages = await notifyChannel.messages.fetch({ limit: 50 });
+
+        // ===== 終了画像：最新1件だけ残す =====
+        const endImages = messages
+          .filter(m => m.author?.id === client.user.id)
+          .filter(m => typeof m.content === 'string' && m.content.includes(VC_END_IMAGE_URL))
+          .sort((a, b) => b.createdTimestamp - a.createdTimestamp);
+
+        for (let i = 1; i < endImages.length; i++) {
+          await endImages[i].delete().catch(() => {});
+        }
+
+        // ===== 開始画像：残っていたら削除 =====
+        const startImages = messages
+          .filter(m => m.author?.id === client.user.id)
+          .filter(m => typeof m.content === 'string' && m.content.includes(VC_START_IMAGE_URL));
+
+        for (const msg of startImages.values()) {
+          await msg.delete().catch(() => {});
+        }
+      }
+    } catch (err) {
+      console.error('[cleanup job error]', err);
+    }
+  }, 60 * 1000); // 1分
+}
 client.on('error', (err) => console.error('[CLIENT ERROR]', err));
 
 // ==== 3. ログイン実行 ====
