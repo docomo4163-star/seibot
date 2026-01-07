@@ -98,7 +98,7 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
         vcAlertMap.delete(key);
       }
 
-      await notifyChannel.send('お疲れ様でした').catch(() => {});
+      await notifyChannel.send('https://cdn.discordapp.com/attachments/951896358590251028/1458264783919775774/Gemini_Generated_Image_help4ahelp4ahelp.png?ex=695f0269&is=695db0e9&hm=4dc67c480c7f03da89eb5ce663339b09ca5e2723dc2721ca8dff553cecb1af3e&').catch(() => {});
     }
   } catch (err) {
     console.error('[voiceStateUpdate error]', err);
