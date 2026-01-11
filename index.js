@@ -64,8 +64,8 @@ client.once(Events.ClientReady, (c) => {
 client.on(Events.MessageCreate, (message) => {
   if (message.author.bot) return;
 
-  if (message.content === 'ping') {
-    message.reply('pong').catch(console.error);
+  if (message.content === 'せいさんは') {
+    message.reply('超絶イケメン美男子').catch(console.error);
   }
   if (message.content === 'せいは') {
     message.reply('ちんぱん').catch(console.error);
