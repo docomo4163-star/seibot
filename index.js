@@ -57,7 +57,7 @@ const client = new Client({
 
 client.once(Events.ClientReady, (c) => {
   console.log(`✅ Discordログイン完了: ${c.user.tag}`);
-  c.user.setActivity('性的な人生0.94', { type: 0 });
+  c.user.setActivity('性的な人生0.93', { type: 0 });
 });
 
 // テキスト反応
