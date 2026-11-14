@@ -1,6 +1,7 @@
 // index.js
 const { Client, GatewayIntentBits, Events } = require('discord.js');
 const express = require('express');
+const { startYouTubeNotifier } = require('./youtube-notifier');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -17,6 +18,9 @@ const VC_START_IMAGE_URL = 'https://cdn.discordapp.com/attachments/9518963585902
 // VC終了時に貼る画像URL（既存）
 const VC_END_IMAGE_URL =
   'https://cdn.discordapp.com/attachments/951896358590251028/1458264783919775774/Gemini_Generated_Image_help4ahelp4ahelp.png?ex=695f0269&is=695db0e9&hm=4dc67c480c7f03da89eb5ce663339b09ca5e2723dc2721ca8dff553cecb1af3e&';
+
+// YouTubeの配信・動画通知を貼るテキストチャンネルID（別のチャンネルにしたい場合はここを変更）
+const YOUTUBE_NOTIFY_CHANNEL_ID = '926043729243033611';
 
 // ==== 1. Webサーバーを最優先で起動 ====
 
@@ -57,7 +61,12 @@ const client = new Client({
 
 client.once(Events.ClientReady, (c) => {
   console.log(`✅ Discordログイン完了: ${c.user.tag}`);
-  c.user.setActivity('性的な人生0.94', { type: 0 });
+  c.user.setActivity('性的な人生0.95', { type: 0 });
+
+  // YouTubeの配信開始・動画投稿を自動でお知らせ
+  startYouTubeNotifier(client, {
+    discordChannelId: YOUTUBE_NOTIFY_CHANNEL_ID,
+  });
 });
 
 // テキスト反応
@@ -153,3 +162,4 @@ process.on('unhandledRejection', (reason) => {
 process.on('uncaughtException', (err) => {
   console.error('🔥 Uncaught Exception:', err);
 });
+
